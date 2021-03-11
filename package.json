@@ -1,12 +1,12 @@
 {
-  "name": "backend",
+  "name": "BE_diagnostic_des_anomalies",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "server": "nodemon server.js",
-    "client": "npm start --prefix ../frontend",
+    "client": "npm start --prefix ../FE_diagnostic_des_anomalies",
     "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "author": "Nedra Krifa",
