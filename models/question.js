@@ -7,6 +7,7 @@ const QuestionSchema = mongoose.Schema({
   title: {
     type: String,
     required: true,
+    unique: true,
   },
   body: {
     type: String,
@@ -14,6 +15,14 @@ const QuestionSchema = mongoose.Schema({
   },
   tags: [{
     type: String,
+    required: true,
+  }],
+  answers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+  }],
+  comments: [{
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
   }],
   created: {

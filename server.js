@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 require("dotenv/config");
 const usersRoute = require("./routes/api/users");
 const questionsRoute = require("./routes/api/questions");
+const tagsRoute = require('./routes/api/tags');
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 
 app.use("/api/users", usersRoute);
 app.use("/api/questions", questionsRoute);
+app.use("/api/tags", tagsRoute);
 
 mongoose.connect(
     process.env.DB_CONNECTION,

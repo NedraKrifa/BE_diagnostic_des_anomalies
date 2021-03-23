@@ -7,7 +7,7 @@ const {
   registerValidation,
   loginValidation,
   ValidationError,
-} = require("../../validation/validation");
+} = require("../../validation/userValidation");
 const verify = require("../middleware/verifyToken");
 
 
@@ -24,6 +24,8 @@ router.post("/register", async (req, res) => {
   if (error) return res.status(400).send(ValidationError(error));
 
   //checking if the user is already in the database
+  const usernameExist = await User.findOne({ username });
+  if (usernameExist) return res.status(400).send("username already exists");
   const emailExist = await User.findOne({ email });
   if (emailExist) return res.status(400).send("Email already exists");
 
@@ -97,6 +99,16 @@ router.get("/user", verify, async (req, res) => {
       .select("-password");
     if (!user) return res.status(400).send("User Does not exist");
     res.json(user);
+  } catch (e) {
+    res.status(400).json({ msg: e.message });
+  }
+});
+
+//Get users:private
+router.get("/", verify, async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    res.json(users);
   } catch (e) {
     res.status(400).json({ msg: e.message });
   }
