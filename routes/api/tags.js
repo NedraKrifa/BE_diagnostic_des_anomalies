@@ -34,4 +34,14 @@ router.get("/name", verify, async (req, res) => {
   }
 });
 
+//[Get] Specific item
+router.get("/:itemId", verify, async (req, res) => {
+  try {
+    const item = await Tag.findById(req.params.itemId);
+    res.json(item);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
 module.exports = router;

@@ -104,8 +104,40 @@ router.get("/user", verify, async (req, res) => {
   }
 });
 
-//Get users:private
-router.get("/", verify, async (req, res) => {
+//Get user:private
+router.get("/user/:id", verify, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select("-password");
+    if (!user) return res.status(400).send("User Does not exist");
+    res.json(user);
+  } catch (e) {
+    res.status(400).json({ msg: e.message });
+  }
+});
+
+//Get members:private
+router.get("/members", verify, async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    res.json(users);
+  } catch (e) {
+    res.status(400).json({ msg: e.message });
+  }
+});
+
+//Get moderators:private
+router.get("/moderators", verify, async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    res.json(users);
+  } catch (e) {
+    res.status(400).json({ msg: e.message });
+  }
+});
+
+//Get administrators:private
+router.get("/administrators", verify, async (req, res) => {
   try {
     const users = await User.find().select("-password");
     res.json(users);

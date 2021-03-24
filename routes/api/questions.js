@@ -105,7 +105,7 @@ router.post("/", verify, async (req, res) => {
   try {
     const saveditem = await item.save();
     const { _id, created } = saveditem;
-    await esClient.index({
+    /*await esClient.index({
       index: "proxymtips",
       type: "questions",
       body: {
@@ -115,7 +115,7 @@ router.post("/", verify, async (req, res) => {
         tags,
         created,
       },
-    });
+    });*/
     res.json(saveditem);
   } catch (err) {
     res.json({ message: err });
