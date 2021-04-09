@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const QuestionSchema = mongoose.Schema({
   author: {
-    type: String,
-    required: true
+    _id: { type: String, required: true },
+    username: { type: String, required: true },
   },
   title: {
     type: String,
@@ -13,22 +13,28 @@ const QuestionSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  tags: [{
-    type: String,
-    required: true,
-  }],
-  answers: [{
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-  }],
-  comments: [{
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-  }],
+  tags: [
+    {
+      type: String,
+      required: true,
+    },
+  ],
+  answers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+    },
+  ],
+  comments: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+    },
+  ],
   created: {
-      type: Date,
-      default: Date.now,
-  }
+    type: Date,
+    default: Date.now,
+  },
 });
 
 module.exports = mongoose.model("questions", QuestionSchema);

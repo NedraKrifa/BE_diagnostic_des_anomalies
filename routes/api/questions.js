@@ -52,7 +52,7 @@ router.post("/", verify, async (req, res) => {
     //checking if the title is already in the database
   const titleExist = await Question.findOne({ title });
   if (titleExist) return res.status(400).send("title already exists");
-
+let finalTagList=[];
 //POST tags
   tags.forEach(async function(element) {
     const tagExist = await Tag.findOne({name:element});
@@ -74,6 +74,8 @@ router.post("/", verify, async (req, res) => {
             questioNumber: tagExist.questioNumber + 1,
           },
         });*/
+        finalTagList.push({ _id: tagExist._id, name: tagExist.name });
+        console.log("itemtag", finalTagList);
       }else{
         const tag = new Tag({
           name: element,
@@ -90,19 +92,21 @@ router.post("/", verify, async (req, res) => {
             questioNumber,
           },
         });*/
+        finalTagList.push({ _id, name });
       }
     } catch (err) {
       res.json({ message: err });
     }
   });
 
-  const item = new Question({
-    author,
-    title,
-    body,
-    tags
-  });
   try {
+    console.log("finaltag",finalTagList);
+    const item = new Question({
+      author,
+      title,
+      body,
+      tags,
+    });
     const saveditem = await item.save();
     const { _id, created } = saveditem;
     /*await esClient.index({
@@ -112,7 +116,7 @@ router.post("/", verify, async (req, res) => {
         _id,
         author,
         title,
-        tags,
+        tags: finalTagList,
         created,
       },
     });*/
