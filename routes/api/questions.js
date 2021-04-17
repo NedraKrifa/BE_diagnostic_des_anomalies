@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Question = require("../../models/question");
+const Comment = require("../../models/comment");
 const Tag = require("../../models/tag");
 const verify = require('../middleware/verifyToken');
 const esClient = require('../../connections/ElasticsearchConnection');
@@ -52,12 +53,13 @@ router.post("/", verify, async (req, res) => {
     //checking if the title is already in the database
   const titleExist = await Question.findOne({ title });
   if (titleExist) return res.status(400).send("title already exists");
-let finalTagList=[];
+
 //POST tags
-  tags.forEach(async function(element) {
-    const tagExist = await Tag.findOne({name:element});
+const finalTagList= await Promise.all(
+  tags.map(async function (element) {
+    const tagExist = await Tag.findOne({ name: element });
     try {
-      if(tagExist){
+      if (tagExist) {
         await Tag.updateOne(
           { _id: tagExist._id },
           {
@@ -74,13 +76,12 @@ let finalTagList=[];
             questioNumber: tagExist.questioNumber + 1,
           },
         });*/
-        finalTagList.push({ _id: tagExist._id, name: tagExist.name });
-        console.log("itemtag", finalTagList);
-      }else{
+        return { _id: tagExist._id, name: tagExist.name };
+      } else {
         const tag = new Tag({
           name: element,
           questioNumber: 1,
-        }); 
+        });
         const savedtag = await tag.save();
         const { _id, questioNumber, name } = savedtag;
         /*await esClient.index({
@@ -92,12 +93,13 @@ let finalTagList=[];
             questioNumber,
           },
         });*/
-        finalTagList.push({ _id, name });
+        return { _id, name };
       }
     } catch (err) {
       res.json({ message: err });
     }
-  });
+  })
+);
 
   try {
     console.log("finaltag",finalTagList);
@@ -105,7 +107,7 @@ let finalTagList=[];
       author,
       title,
       body,
-      tags,
+      tags: finalTagList,
     });
     const saveditem = await item.save();
     const { _id, created } = saveditem;
@@ -140,7 +142,24 @@ router.get("/count", async (req,res) =>{
 router.get("/:itemId", verify, async (req, res) => {
   try {
     const item = await Question.findById(req.params.itemId);
-    res.json(item);
+    const {_id, vote,title,tags, author, body, created,answers, comments} = item;
+    const finalComments = await Promise.all(
+      comments.map(async (commentId) => {
+        const comment = await Comment.findById(commentId);
+        return comment;
+      })
+    );
+    res.json({
+      _id,
+      author,
+      title,
+      body,
+      tags,
+      vote,
+      comments: finalComments,
+      answers,
+      created
+    });
   } catch (err) {
     res.json({ message: err });
   }

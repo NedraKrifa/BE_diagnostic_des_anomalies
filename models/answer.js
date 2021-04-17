@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const AnswerSchema = mongoose.Schema({
   author: {
-    type: String,
-    required: true
+    _id: { type: String, required: true },
+    username: { type: String, required: true },
   },
   body: {
     type: String,
@@ -16,9 +16,9 @@ const AnswerSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     required: true,
   }],
-  idRef: {
-    type: String,
-    required: true
+  vote: {
+    type: Number,
+    default: 0,
   }
 });
 

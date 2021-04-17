@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const CommentSchema = mongoose.Schema({
   author: {
-    type: String,
-    required: true
+    _id: { type: String, required: true },
+    username: { type: String, required: true },
   },
   body: {
     type: String,
@@ -11,10 +11,6 @@ const CommentSchema = mongoose.Schema({
   created: {
       type: Date,
       default: Date.now,
-  },
-  idRef: {
-    type: String,
-    required: true
   }
 });
 

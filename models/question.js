@@ -15,8 +15,8 @@ const QuestionSchema = mongoose.Schema({
   },
   tags: [
     {
-      type: String,
-      required: true,
+      _id: { type: String, required: true },
+      name: { type: String, required: true },
     },
   ],
   answers: [
@@ -31,6 +31,10 @@ const QuestionSchema = mongoose.Schema({
       required: true,
     },
   ],
+  vote: {
+    type: Number,
+    default: 0,
+  },
   created: {
     type: Date,
     default: Date.now,
