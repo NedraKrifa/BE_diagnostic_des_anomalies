@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 io.on('connection', socket => {
-  console.log(`${socket.id} connected`);
+  //console.log(`${socket.id} connected`);
   // Join a conversation
   const { id } = socket.handshake.query;
   socket.join(id);

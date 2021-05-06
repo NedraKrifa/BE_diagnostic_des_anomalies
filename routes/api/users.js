@@ -13,23 +13,51 @@ const verify = require("../middleware/verifyToken");
 
 const client = new LdapClient({url :"ldap://127.0.0.1:1389"});
 
-/*
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
-  const dn ="cn="+username+",ou=users,ou=system";
-  const filter = '(cn='+ username+')';
+  const dn = "cn=" + username + ",ou=users,ou=system";
+  const filter = "(cn=" + username + ")";
 
   //LETS VALIDATE THE DATA BEFORE WE A USER
   const { error } = loginValidation({ username, password });
   if (error) return res.status(400).send(ValidationError(error));
 
   //checking if the user exists
-  try{
+  try {
     await client.bind(dn, password);
   } catch (e) {
     res.status(400).send("username is not found or Invalid password");
   }
+  let userItem;
+  //checking if the user exists in the database
+  const user = await User.findOne({ username });
+  if (!user) {
+    const newUser = new User({
+      username,
+      email: username + "@proxym-it.com",
+    });
+    userItem = await newUser.save();
+  } else {
+    userItem = user;
+  }
 
+  //create and assign a token
+  const token = jwt.sign({ _id: userItem._id }, process.env.TOKEN_SECRET);
+
+  try {
+    res.json({
+      token,
+      user: {
+        id: userItem._id,
+        username: userItem.username,
+        email: userItem.email,
+        role: userItem.role,
+      },
+    });
+  } catch (err) {
+    res.status(400).send(err);
+  }
+  /*
   //create and assign a token
   const token = jwt.sign({ username: username }, process.env.TOKEN_SECRET);
   const opts = {
@@ -51,7 +79,7 @@ router.post("/login", async (req, res) => {
     });
   } catch (err) {
     res.status(400).send(err);
-  }
+  }*/
 });
 /*
 //Get user:private
@@ -191,7 +219,7 @@ router.post("/register", async (req, res) => {
   }
 });
 */
-
+/*
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -223,6 +251,6 @@ router.post("/login", async (req, res) => {
   } catch (err) {
     res.status(400).send(err);
   }
-});
+});*/
 
 module.exports = router;

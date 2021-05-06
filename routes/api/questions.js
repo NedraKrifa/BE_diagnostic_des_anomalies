@@ -18,19 +18,114 @@ router.get("/", verify, async (req, res) => {
   }
 });
 
+router.get("/old", verify, async (req, res) => {
+  try {
+    const items = await Question.find().sort({ created: 1 });
+    res.json(items);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+router.get("/top", verify, async (req, res) => {
+  try {
+    const items = await Question.find().sort({ vote: -1 });
+    res.json(items);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+router.get("/tags/id=:tagId&name=:tagName", verify, async (req, res) => {
+  try {
+    const items = await Question.find({ tags: {_id:req.params.tagId,name:req.params.tagName} }).sort({ vote: -1 });
+    res.json(items);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+router.get("/users/id=:userId&name=:userName", verify, async (req, res) => {
+  try {
+    const items = await Question.find({ author: {_id:req.params.userId,username:req.params.userName} }).sort({ vote: -1 });
+    res.json(items);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
 //[Get] Get all items: elasticsearch
 router.get("/search", verify, async (req, res) => {
+    const { authors, title, tags } = req.query;
+
+    let querySearch={
+      must: [],
+      filter:[]
+    };
+    if(title !==''){
+      querySearch.must.push({match: { title: title }})
+    }
+    if(tags !==''){
+      querySearch.filter.push({
+        terms: {
+          tags: tags.split(","),
+        },
+      });
+      if(title==''){
+        querySearch.must.push({match_all: {}})
+      }
+    }
+    if(authors!==''){
+      querySearch.filter.push({
+        terms: {
+          "author.username": authors.split(','),
+        },
+      });
+      if(title=='' && tags==''){
+        querySearch.must.push({match_all: {}})
+      }
+    }
+    if(title=='' & tags=='' & authors==''){
+      querySearch = { must: [{match: { title: '' }}] };
+    }
+
     try {
       const items = await esClient.search({
-        index: 'proxymtips',
-        type: 'questions',
+        index: "proxymtips",
+        type: "questions",
         body: {
-            query: {
-                match_all: {}
-            }
-        }
-      })
-      res.json(items);
+          //sort: [{ created: { order: "desc" } }],
+          query: {
+            bool: querySearch,
+            /*bool: {
+              must: [
+                {
+                  match: { title: title },
+                  //regexp: { title: `.*${title}.*` },
+                },
+              ],
+              filter: [
+                {
+                  terms: {
+                    tags: tags.split(','),
+                  },
+                  terms: {
+                    "author.username": authors.split(','),
+                  },
+                },
+              ],
+            },*/
+          },
+        },
+      });
+      const itemsId = items.hits.hits.map((item) => {
+        return item._source.id;
+      });
+      const questions = await Question.find().sort({ vote: -1 });
+      const questionSearch = questions.filter((question) =>
+        itemsId.includes(question._id.toString())
+      );
+      res.json(questionSearch);
     } catch (err) {
       res.json({ message: err });
     }
@@ -102,7 +197,6 @@ const finalTagList= await Promise.all(
 );
 
   try {
-    console.log("finaltag",finalTagList);
     const item = new Question({
       author,
       title,
@@ -111,21 +205,23 @@ const finalTagList= await Promise.all(
     });
     const saveditem = await item.save();
     const { _id, created } = saveditem;
-    /*await esClient.index({
+    await esClient.index({
       index: "proxymtips",
       type: "questions",
       body: {
-        _id,
+        id: _id,
         author,
         title,
-        tags: finalTagList,
+        tags,
         created,
       },
-    });*/
+    });
     res.json(saveditem);
   } catch (err) {
-    res.json({ message: err });
+    res.json({ message: "error" });
   }
+  
+
 });
 
 //count elasticsearch
