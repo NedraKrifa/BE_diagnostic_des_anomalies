@@ -44,4 +44,16 @@ router.get("/:itemId", verify, async (req, res) => {
   }
 });
 
+//Search Tag
+router.get("/tag/:itemName", verify, async (req, res) => {
+  try {
+    const item = await Tag.find({
+      name: { $regex: req.params.itemName },
+    }).sort({ created: -1 });
+    res.json(item);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
 module.exports = router;

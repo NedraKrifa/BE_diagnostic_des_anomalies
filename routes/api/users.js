@@ -143,7 +143,7 @@ router.get("/members", verify, async (req, res) => {
 //Get members:private
 router.get("/members", verify, async (req, res) => {
   try {
-    const users = await User.find().select("-password");
+    const users = await User.find({role:"Member"}).select("-password");
     res.json(users);
   } catch (e) {
     res.status(400).json({ msg: e.message });
@@ -153,7 +153,7 @@ router.get("/members", verify, async (req, res) => {
 //Get moderators:private
 router.get("/moderators", verify, async (req, res) => {
   try {
-    const users = await User.find().select("-password");
+    const users = await User.find({role:"Moderator"}).select("-password");
     res.json(users);
   } catch (e) {
     res.status(400).json({ msg: e.message });
@@ -163,10 +163,22 @@ router.get("/moderators", verify, async (req, res) => {
 //Get administrators:private
 router.get("/administrators", verify, async (req, res) => {
   try {
-    const users = await User.find().select("-password");
+    const users = await User.find({role:"Administrator"}).select("-password");
     res.json(users);
   } catch (e) {
     res.status(400).json({ msg: e.message });
+  }
+});
+
+//Search user
+router.get("/searchuser/:itemName", verify, async (req, res) => {
+  try {
+    const item = await User.find({
+      username: { $regex: req.params.itemName },
+    }).select("-password");
+    res.json(item);
+  } catch (err) {
+    res.json({ message: err });
   }
 });
 

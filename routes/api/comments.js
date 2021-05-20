@@ -42,7 +42,24 @@ router.post("/", verify, async (req, res) => {
     res.json({ message: err });
   }
 });
-
+/*
+//[Patch] Update a item
+router.patch("/:itemId", verify, async (req, res) => {
+  try {
+    const updatedItem = await Comment.updateOne(
+      { _id: req.params.itemId },
+      {
+        $set: {
+            blocked: req.body.blocked,
+        },
+      }
+    );
+    res.json(updatedItem);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+*/
 
 
 module.exports = router;

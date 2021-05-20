@@ -12,7 +12,7 @@ router.get("/:id", verify, async (req, res) => {
         const item = await Question.findById(req.params.id);
         const answers= await Promise.all(item.answers.map(async (answerId)=>{
             const answer = await Answer.findById(answerId);
-            const {_id, vote, author, body, created, comments} = answer;
+            const {_id, vote, author, body, created, comments, checked, blocked} = answer;
             const commentsUpdated= await Promise.all(comments.map(async(commentId)=>{
                 const comment = await Comment.findById(commentId);
                 return comment;
@@ -23,6 +23,8 @@ router.get("/:id", verify, async (req, res) => {
                 body,
                 vote,
                 created,
+                checked,
+                blocked,
                 comments:commentsUpdated
             };
         }));
@@ -52,6 +54,48 @@ router.post("/", verify, async (req, res) => {
         }
       );
     res.json(saveditem);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+//[Patch] Update an item
+router.patch("/check/:itemId", verify, async (req, res) => {
+  try {
+    const updatedItem = await Answer.updateOne(
+      { _id: req.params.itemId },
+      {
+        $set: {
+            checked: req.body.checked,
+        },
+      }
+    );
+    const updatedQuestion = await Question.updateOne(
+      { _id: req.body.questionId },
+      {
+        $set: {
+            checked: req.body.checked,
+        },
+      }
+    );
+    res.json(updatedItem);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+//[Patch] Update a item
+router.patch("/block/:itemId", verify, async (req, res) => {
+  try {
+    const updatedItem = await Answer.updateOne(
+      { _id: req.params.itemId },
+      {
+        $set: {
+            blocked: req.body.blocked,
+        },
+      }
+    );
+    res.json(updatedItem);
   } catch (err) {
     res.json({ message: err });
   }

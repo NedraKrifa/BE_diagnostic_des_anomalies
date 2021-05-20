@@ -19,6 +19,14 @@ const AnswerSchema = mongoose.Schema({
   vote: {
     type: Number,
     default: 0,
+  },
+  blocked: {
+    type: Boolean,
+    default: false,
+  },
+  checked: {
+    type: Boolean,
+    default: false,
   }
 });
 

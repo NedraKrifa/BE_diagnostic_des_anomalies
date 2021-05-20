@@ -11,7 +11,7 @@ const { ValidationError } = require('../../validation/userValidation');
 //[Get] Get all items
 router.get("/", verify, async (req, res) => {
   try {
-    const items = await Question.find().sort({ created: -1 });
+    const items = await Question.find({blocked:false}).sort({ created: -1 });
     res.json(items);
   } catch (err) {
     res.json({ message: err });
@@ -20,7 +20,7 @@ router.get("/", verify, async (req, res) => {
 
 router.get("/old", verify, async (req, res) => {
   try {
-    const items = await Question.find().sort({ created: 1 });
+    const items = await Question.find({blocked:false}).sort({ created: 1 });
     res.json(items);
   } catch (err) {
     res.json({ message: err });
@@ -29,7 +29,34 @@ router.get("/old", verify, async (req, res) => {
 
 router.get("/top", verify, async (req, res) => {
   try {
+    const items = await Question.find({blocked:false}).sort({ vote: -1 });
+    res.json(items);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+router.get("/moderation", verify, async (req, res) => {
+  try {
     const items = await Question.find().sort({ vote: -1 });
+    res.json(items);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+router.get("/moderation/unblocked", verify, async (req, res) => {
+  try {
+    const items = await Question.find({blocked:false}).sort({ vote: -1 });
+    res.json(items);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+router.get("/moderation/blocked", verify, async (req, res) => {
+  try {
+    const items = await Question.find({blocked:true}).sort({ vote: -1 });
     res.json(items);
   } catch (err) {
     res.json({ message: err });
@@ -38,7 +65,7 @@ router.get("/top", verify, async (req, res) => {
 
 router.get("/tags/id=:tagId&name=:tagName", verify, async (req, res) => {
   try {
-    const items = await Question.find({ tags: {_id:req.params.tagId,name:req.params.tagName} }).sort({ vote: -1 });
+    const items = await Question.find({ tags: {_id:req.params.tagId,name:req.params.tagName},blocked:false }).sort({ vote: -1 });
     res.json(items);
   } catch (err) {
     res.json({ message: err });
@@ -47,7 +74,7 @@ router.get("/tags/id=:tagId&name=:tagName", verify, async (req, res) => {
 
 router.get("/users/id=:userId&name=:userName", verify, async (req, res) => {
   try {
-    const items = await Question.find({ author: {_id:req.params.userId,username:req.params.userName} }).sort({ vote: -1 });
+    const items = await Question.find({ author: {_id:req.params.userId,username:req.params.userName},blocked:false }).sort({ vote: -1 });
     res.json(items);
   } catch (err) {
     res.json({ message: err });
@@ -121,7 +148,7 @@ router.get("/search", verify, async (req, res) => {
       const itemsId = items.hits.hits.map((item) => {
         return item._source.id;
       });
-      const questions = await Question.find().sort({ vote: -1 });
+      const questions = await Question.find({blocked:false}).sort({ vote: -1 });
       const questionSearch = questions.filter((question) =>
         itemsId.includes(question._id.toString())
       );
@@ -238,7 +265,7 @@ router.get("/count", async (req,res) =>{
 router.get("/:itemId", verify, async (req, res) => {
   try {
     const item = await Question.findById(req.params.itemId);
-    const {_id, vote,title,tags, author, body, created,answers, comments} = item;
+    const {_id, vote,title,tags, author, checked, body, created,answers, comments} = item;
     const finalComments = await Promise.all(
       comments.map(async (commentId) => {
         const comment = await Comment.findById(commentId);
@@ -254,7 +281,8 @@ router.get("/:itemId", verify, async (req, res) => {
       vote,
       comments: finalComments,
       answers,
-      created
+      created,
+      checked
     });
   } catch (err) {
     res.json({ message: err });
@@ -278,10 +306,7 @@ router.patch("/:itemId", verify, async (req, res) => {
       { _id: req.params.itemId },
       {
         $set: {
-            author: req.body.author,
-            title: req.body.title,
-            body: req.body.body,
-            tags: req.body.tags,
+            blocked: req.body.blocked,
         },
       }
     );
