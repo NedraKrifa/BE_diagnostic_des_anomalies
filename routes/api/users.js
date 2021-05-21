@@ -140,6 +140,16 @@ router.get("/members", verify, async (req, res) => {
 */
 
 
+//Get all:private
+router.get("/", verify, async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    res.json(users);
+  } catch (e) {
+    res.status(400).json({ msg: e.message });
+  }
+});
+
 //Get members:private
 router.get("/members", verify, async (req, res) => {
   try {
@@ -177,6 +187,23 @@ router.get("/searchuser/:itemName", verify, async (req, res) => {
       username: { $regex: req.params.itemName },
     }).select("-password");
     res.json(item);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+
+//[Patch] Update a item
+router.patch("/role/:itemId", verify, async (req, res) => {
+  try {
+    const updatedItem = await User.updateOne(
+      { _id: req.params.itemId },
+      {
+        $set: {
+            role: req.body.role,
+        },
+      }
+    );
+    res.json(updatedItem);
   } catch (err) {
     res.json({ message: err });
   }
