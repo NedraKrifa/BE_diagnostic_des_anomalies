@@ -1,12 +1,15 @@
 const express = require("express");
+const nodemailer = require('nodemailer');
 const router = express.Router();
 const Question = require("../../models/question");
+const User = require("../../models/user");
 const Comment = require("../../models/comment");
 const Tag = require("../../models/tag");
 const verify = require('../middleware/verifyToken');
 const esClient = require('../../connections/ElasticsearchConnection');
 const questionValidation = require('../../validation/questionValidation');
 const { ValidationError } = require('../../validation/userValidation');
+require("dotenv/config");
 
 //[Get] Get all items
 router.get("/", verify, async (req, res) => {
@@ -301,12 +304,54 @@ router.delete("/:itemId", verify, async (req, res) => {
 
 //[Patch] Update a item
 router.patch("/:itemId", verify, async (req, res) => {
+  const { blocked, text } = req.body;
+  const { itemId } = req.params;
+
+  if(blocked){
+    const questionItem = await Question.findById(itemId);
+    const reciever = questionItem.author;
+    const userDetail = await User.findById(reciever._id);
+    console.log(userDetail.email);
+    //service gmail
+    let transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        type: "OAuth2",
+        user: process.env.EMAIL,
+        pass: process.env.WORD,
+        clientId: process.env.OAUTH_CLIENTID,
+        clientSecret: process.env.OAUTH_CLIENT_SECRET,
+        refreshToken: process.env.OAUTH_REFRESH_TOKEN,
+      },
+    });
+
+   transporter.verify((err, success) => {
+     err
+       ? console.log(err)
+       : console.log(`=== Server is ready to take messages: ${success} ===`);
+   });
+
+   let mailOptions = {
+     from: process.env.EMAIL,
+     to: userDetail.email,
+     subject: "[ProxymTips] reason for blocking your question",
+     text: `Hello ${reciever.username}, \n The reason for blocking your question are: \n ${text} \n Sincerely, \n ProxymTips Team`,
+   };
+
+   transporter.sendMail(mailOptions, function (err, data) {
+     if (err) {
+       console.log("Error " + err);
+     } else {
+       console.log("Email sent successfully");
+     }
+   });
+  }
   try {
     const updatedItem = await Question.updateOne(
-      { _id: req.params.itemId },
+      { _id: itemId },
       {
         $set: {
-            blocked: req.body.blocked,
+            blocked: blocked,
         },
       }
     );

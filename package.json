@@ -22,6 +22,7 @@
     "jsonwebtoken": "^8.5.1",
     "ldapjs-client": "^0.1.1",
     "mongoose": "^5.11.18",
+    "nodemailer": "^6.6.2",
     "nodemon": "^2.0.7",
     "socket.io": "^4.0.0"
   }
